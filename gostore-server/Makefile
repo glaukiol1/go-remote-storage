@@ -1,4 +1,4 @@
 build:
-	go build && make run
+	go build -o gstore-server && make run
 run:
-	./gostore-server
+	./gstore-server

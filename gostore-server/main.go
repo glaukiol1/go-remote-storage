@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/glaukiol1/go-remote-storage/gostore-server/menu"
+	menu "github.com/glaukiol1/go-arrow-menu"
 )
 
 func _main(choice int) {
