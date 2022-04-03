@@ -16,6 +16,7 @@ const (
 	CLEAR   = "\033[H\033[2J"
 	OKGREEN = "\033[92m"
 	OKBLUE  = "\033[94m"
+	FAIL    = "\033[91m"
 )
 
 func CreateServer() {
