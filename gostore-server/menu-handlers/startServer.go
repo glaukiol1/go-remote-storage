@@ -1,0 +1,5 @@
+package menuhandlers
+
+func StartServer() {
+
+}
