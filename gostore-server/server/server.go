@@ -1,10 +1,8 @@
 package server
 
 import (
-	"bufio"
 	"fmt"
 	"net"
-	"strings"
 )
 
 const (
@@ -19,26 +17,13 @@ const (
 	FAIL    = "\033[91m"
 )
 
-func Start(port int) {
-	go func() { serverStart(port) }()
+func Start(port int, mongosrv string) {
+	go func() { serverStart(port, mongosrv) }()
 }
 
-func handleMessage(c net.Conn) {
-	for {
-		netData, err := bufio.NewReader(c).ReadString('\n')
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		msg := strings.TrimSpace(string(netData))
-		println("New Msg: " + msg)
-		c.Close()
-		break
-	}
-}
-
-func serverStart(port int) {
+func serverStart(port int, mongosrv string) {
 	fmt.Println(HEADER + BOLD + "==> Starting server in port " + fmt.Sprint(port) + "..." + ENDC)
+	db := getdb(mongosrv)
 	PORT := ":" + fmt.Sprint(port)
 	l, err := net.Listen("tcp", PORT)
 	if err != nil {
@@ -54,6 +39,6 @@ func serverStart(port int) {
 			fmt.Println(err)
 			return
 		}
-		go handleMessage(c)
+		go handleMessage(c, db)
 	}
 }

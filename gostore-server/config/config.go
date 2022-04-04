@@ -6,10 +6,10 @@ import (
 	"strings"
 )
 
-func SetConfig(gostorepath, servername, port string) error {
+func SetConfig(gostorepath, servername, mongodbsrv, port string) error {
 	os.Setenv("GOSTORE_PATH", gostorepath)
 	data := []byte(
-		"SERVERNAME: " + servername + "\nPORT: " + port)
+		"SERVERNAME: " + servername + "\nPORT: " + port + "\nMONGOSRV: " + mongodbsrv)
 	file, err := os.Create(path.Join(gostorepath, "gostore.conf"))
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func GetConfigObj() ([]*Sk_v, error) {
 	for _, v := range arr_data {
 		k_v := strings.Split(v, ":")
 		key := k_v[0]
-		value := strings.ReplaceAll(k_v[1], " ", "")
+		value := strings.TrimSpace(strings.Join(k_v[1:], ":"))
 		key_value_array = append(key_value_array, &Sk_v{key, value})
 	}
 	return key_value_array, nil

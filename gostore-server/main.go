@@ -17,6 +17,7 @@ const (
 )
 
 func _main(choice int) {
+	fmt.Println(CLEAR)
 	switch choice {
 	case 0:
 		menuhandlers.CreateServer()

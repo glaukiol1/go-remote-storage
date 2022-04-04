@@ -24,16 +24,19 @@ const (
 
 func CreateServer() {
 	fmt.Println(CLEAR + HEADER + BOLD + "==> GoStore | Create Server..." + ENDC)
-	fmt.Print("Enter Server Name: ")
+	fmt.Print("==> Enter Server Name: ")
 	var servername string
 	fmt.Scanln(&servername)
-	fmt.Print("Enter full path for the GoStore server: ")
+	fmt.Print("==> Enter full path for the GoStore server: ")
 	var gostorepath string
 	fmt.Scanln(&gostorepath)
+	fmt.Print("==> Enter mongodb URI (Cluster): ")
+	var mongodbrv string
+	fmt.Scanln(&mongodbrv)
 
 	fmt.Println("\n" + OKBLUE + BOLD + "==> Writing Config File..." + ENDC)
 
-	err := config.SetConfig(gostorepath, servername, "12368")
+	err := config.SetConfig(gostorepath, servername, mongodbrv, "12368")
 
 	if err != nil {
 		fmt.Println(WARNING + BOLD + "Error while writting config file... " + err.Error())
@@ -65,19 +68,20 @@ func CreateServer() {
 			os.Exit(1)
 		}
 		fmt.Println(OKGREEN + BOLD + "\nSuccessfully read config file at $GOSTORE_PATH")
+		var PORT int
+		var MONGOSRV string
 		for _, v := range k_v {
 			if v.Key == "PORT" {
-				port, err := strconv.Atoi(strings.TrimSpace(v.Value))
+				PORT, err = strconv.Atoi(strings.TrimSpace(v.Value))
 				if err != nil {
 					panic(err)
 				}
-				server.Start(port)
-				for {
-				}
+			} else if v.Key == "MONGOSRV" {
+				MONGOSRV = v.Value
 			}
-
 		}
-		fmt.Println(WARNING + BOLD + "Failed to parse config file... " + err.Error())
-		os.Exit(1)
+		server.Start(PORT, MONGOSRV)
+		for {
+		}
 	}
 }
