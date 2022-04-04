@@ -17,13 +17,14 @@ func handleMessage(c net.Conn, db *mongo.Client) {
 			return
 		}
 		msg := strings.TrimSpace(string(netData))
-		key_value := strings.Split(msg, ":")
-		if len(key_value) != 2 {
+		key := strings.Split(msg, ":")[0]
+		value := strings.Join(strings.Split(msg, ":")[1:], ":")
+		if !(len(key) > 0) && !(len(value) > 0) {
 			c.Write([]byte("TYPE_ERROR:invalid request"))
 			c.Close()
 			return
 		}
-		newMessageHandler(key_value[0], key_value[1], c).Handle(db)
+		newMessageHandler(key, value, c).Handle(db)
 		c.Close()
 		break
 	}

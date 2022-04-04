@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,7 +14,7 @@ type messageHandler struct {
 }
 
 func (mh *messageHandler) Handle(db *mongo.Client) {
-
+	fmt.Println("New command requested; " + mh.Key)
 	switch mh.Key {
 	case "TYPE_LOGIN":
 		login(mh.Connection, mh.Value, db)
