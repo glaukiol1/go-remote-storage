@@ -43,7 +43,6 @@ func cmd_ls(conn net.Conn, args []string, username_password []string) {
 	GOSTORE_PATH := os.Getenv("GOSTORE_PATH")
 	if len(args) != 1 {
 		conn.Write([]byte("TYPE_ERROR:PASS DIR ARG"))
-		conn.Close()
 		return
 	}
 	fmt.Println(args)
@@ -52,15 +51,15 @@ func cmd_ls(conn net.Conn, args []string, username_password []string) {
 		"."+strings.TrimSpace(username_password[0]),
 		args[0]))
 	if err != nil {
-		conn.Write([]byte("TYPE_UNKNOWN_ERROR:COULDN'T ACCESS DIR"))
-		conn.Close()
+		conn.Write([]byte("TYPE_NOT_ACCESS_DIR"))
 		return
 	}
-	conn.Write([]byte("TYPE_START_RESPONSE\n"))
+	if len(files) == 0 {
+		conn.Write([]byte("TYPE_NO_FILES"))
+	}
 	for _, file := range files {
 		conn.Write(getFileJSON(file))
 	}
-	conn.Write([]byte("TYPE_END_RESPONSE\n"))
 }
 
 func split(buf []byte, lim int) [][]byte {
