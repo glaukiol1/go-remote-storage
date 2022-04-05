@@ -1,9 +1,13 @@
 # virtual shell
 import json
+import os
+import posixpath
 from pprint import pprint
 from socket import socket
 import sys
 from time import sleep
+
+from download import download
 
 
 HEADER = '\033[95m'
@@ -90,6 +94,11 @@ def lgin(s: socket, username,password) -> str:
         else:
             print(FAIL+BOLD+"Failed to login."+ENDC)
 
+def cmd_download(s: socket, filename: str):
+    path = posixpath.join(vfs.current_dir, filename)
+    saveto = os.path.join("recv", filename)
+    download(s,path,saveto)
+
 def ls(s: socket, searchfor):
     cmd = bytes(searchfor, "utf-8")
     s.sendall(cmd)
@@ -149,8 +158,31 @@ def pathIsIndexed(path: str) -> int:
 
 def cd(s: socket, path: str):
     indexvdir(s,path)
-    vfs.current_dir = path
+    vfs.current_dir = posixpath.join(vfs.current_dir,path)
 
+def send(s:socket,cmd:str):
+    localsystempath = input(OKBLUE+BOLD+"Enter the full file path on your local computer: ")
+    originpath = input("Enter the full path on where you want to store this file: ."+globals.username+"/")
+    print(ENDC)
+    s.send(bytes("TYPE_SEND:"+originpath+"\n", "utf-8"))
+    try:
+        with open(localsystempath, "r") as file:
+            str_file = file.read()
+            bytes_file = bytes(str_file, file.encoding)
+
+            split_bytes_file = [bytes_file[x:x+1024] for x in range(0, len(bytes_file), 1024)]
+            sleep(1)
+            for m1024bytes in split_bytes_file:
+                s.send(m1024bytes)
+            s.send(b"TYPE_END_RESPONSE")
+            file.close()
+        rsp = str(s.recv(1024))
+        if rsp.find("TYPE_SUCCESS") != -1:
+            print(OKGREEN+BOLD+"Success"+ENDC)
+        else:
+            print(FAIL+BOLD+"failed... response:", rsp)
+    except OSError:
+        print(FAIL+BOLD+"failed on opening local file, double check the path.")
 def nrml_vhs(srv_ip, port):
     s = socket()
     s.connect((srv_ip, port))
@@ -194,4 +226,13 @@ def nrml_vhs(srv_ip, port):
                 vfs.current_dir = oldpath
         elif cmd.startswith("cwd"):
             print(vfs.current_dir)
-                
+        elif cmd.startswith("get"):
+            try:
+                if len(cmd.split(" ")) == 2:
+                    cmd_download(s,cmd.split(" ")[1])
+                else:
+                    print(WARNING+BOLD+"please pass a filename as a argument..."+ENDC)
+            except:
+                print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+        elif cmd.startswith("send"):
+            send(s,cmd)
