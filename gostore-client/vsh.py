@@ -91,10 +91,17 @@ def ls(s: socket, searchfor):
 def indexvdir(s, path:str):
     searchfor = "CMD_LS:"+path+"\n"
     json_dir = ls(s, searchfor)
-    vfs.vfs.append({
-        "path": path,
-        "data": json_dir
-    })
+    i = pathIsIndexed(path)
+    if i != -1:
+        vfs.vfs[i] = {
+            "path": path,
+            "data": json_dir
+        }
+    else:
+        vfs.vfs.append({
+            "path": path,
+            "data": json_dir
+        })
 
 def outputdir(path: str):
     for vdir in vfs.vfs:
@@ -112,6 +119,18 @@ def outputdir(path: str):
                 print(result)
                 return
 
+
+def pathIsIndexed(path: str) -> int:
+    indx = 0
+    for vdir in vfs.vfs:
+        if vdir["path"] == path:
+            return indx
+    return -1
+
+def cd(s: socket, path: str):
+    indexvdir(s,path)
+    vfs.current_dir = path
+
 def nrml_vhs(srv_ip, port):
     s = socket()
     s.connect((srv_ip, port))
@@ -123,10 +142,14 @@ def nrml_vhs(srv_ip, port):
             login(s)
         elif cmd.startswith("ls"):
             if len(cmd.split(" ")) != 2:
-                print(WARNING+"no argument passed... indexing current directory."+ENDC)
                 indexvdir(s, vfs.current_dir)
                 outputdir(vfs.current_dir)
             else:
                 indexvdir(s, cmd.split(" ")[1])
                 outputdir(cmd.split(" ")[1])
+        elif cmd.startswith("cd"):
+            if len(cmd.split(" ")) != 2:
+                print(WARNING+BOLD+"Warning: no path passed... will not change CWD."+ENDC)
+            else:
+                cd(s, cmd.split(" ")[1])
                 
