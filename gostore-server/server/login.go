@@ -2,6 +2,7 @@ package server
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io/fs"
@@ -31,6 +32,9 @@ func handle_after_login(conn net.Conn, username_password []string) {
 	}
 	if strings.HasPrefix(cmd, "TYPE_GET") {
 		type_get(conn, strings.Split(cmd, ":")[1:], username_password)
+	}
+	if strings.HasPrefix(cmd, "TYPE_SEND") {
+		type_send(conn, strings.Split(cmd, ":")[1:], username_password)
 	}
 	handle_after_login(conn, username_password)
 }
@@ -100,7 +104,7 @@ func type_get(conn net.Conn, args []string, username_password []string) {
 		"."+strings.TrimSpace(username_password[0]),
 		args[0])
 
-	if strings.HasSuffix(fpath, lpath) {
+	if strings.HasPrefix(fpath, lpath) {
 		file_bytes, err := os.ReadFile(fpath)
 		if err != nil {
 			conn.Write([]byte("TYPE_ERROR:COULDN'T ACCESS FILE"))
@@ -116,7 +120,66 @@ func type_get(conn net.Conn, args []string, username_password []string) {
 	} else {
 		conn.Write([]byte("TYPE_ERROR:COULDN'T ACCESS FILE"))
 	}
+}
 
+func readBytes(conn net.Conn) []byte {
+	buf := make([]byte, 1024)
+	var totalbytes []byte
+	for {
+		len, err := conn.Read(buf)
+
+		if err != nil {
+			fmt.Println("Error reading:", err.Error())
+			break
+		}
+		v := bytes.Index(buf[:len], []byte("TYPE_END_RESPONSE"))
+		if v != -1 {
+			totalbytes = append(totalbytes, buf[0:v]...)
+			return totalbytes
+		}
+		totalbytes = append(totalbytes, buf[:len]...)
+	}
+	return totalbytes
+}
+
+func type_send(conn net.Conn, args []string, username_password []string) {
+	// recieve file
+	GOSTORE_PATH := os.Getenv("GOSTORE_PATH")
+	if len(args) != 1 {
+		conn.Write([]byte("TYPE_ERROR:PASS DIR ARG"))
+		conn.Close()
+		return
+	}
+	lpath := path.Join(GOSTORE_PATH,
+		"."+strings.TrimSpace(username_password[0]))
+	fpath := path.Join(GOSTORE_PATH,
+		"."+strings.TrimSpace(username_password[0]),
+		args[0])
+	if strings.HasPrefix(fpath, lpath) {
+		totalbytes := readBytes(conn)
+		file, err := os.OpenFile(fpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+		if err != nil {
+			fmt.Println("couldn't open file")
+			conn.Write([]byte("TYPE_ERROR:COULDN'T ACCESS FILE"))
+			return
+		}
+
+		n, err := file.Write(totalbytes)
+		if err != nil {
+			fmt.Println("file write error")
+			conn.Write([]byte("TYPE_ERROR:COULDN'T WRITE FILE"))
+			return
+		}
+		if n == len(totalbytes) {
+			conn.Write([]byte("TYPE_SUCCESS"))
+			return
+		} else {
+			conn.Write([]byte("TYPE_CORRUPT"))
+			return
+		}
+	} else {
+		conn.Write([]byte("TYPE_ERROR:COULDN'T ACCESS FILE"))
+	}
 }
 
 func login(conn net.Conn, message string, client *mongo.Client) {
