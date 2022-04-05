@@ -2,7 +2,8 @@
 import json
 from pprint import pprint
 from socket import socket
-from time import sleep, time
+import sys
+from time import sleep
 
 
 HEADER = '\033[95m'
@@ -20,18 +21,29 @@ class vfs:
     current_dir = ""
     vfs = []
 
+class globals:
+    isLogged = False
+    username = ""
 
 def vhs():
     print(CLEAR)
     print(BOLD+HEADER+"==> Starting VHS..."+ENDC)
     srv_ip = input(BOLD+OKCYAN+"Server IP Address: ")
     print()
-    port = int(input(BOLD+OKCYAN+"Server Port: (Usually 12368) "))
+    try:
+        port = int(input(BOLD+OKCYAN+"Server Port: (Default 12368) "))
+    except:
+        port = 12368
     print(ENDC)
     print()
-    print(BOLD+WARNING+"==> Opening socket...")
+    print(BOLD+WARNING+"==> Opening socket..."+ENDC)
     s = socket()
-    s.connect((srv_ip,port))
+    try:
+        s.connect((srv_ip,port))
+    except:
+        print(FAIL+BOLD+"FATAL: couldn't connect to "+str(srv_ip)+":"+str(port))
+        sys.exit(1)
+    
     print()
     print(BOLD+WARNING+"==> running command... "+HEADER+"$> TYPE_ECHO:hi from vsh")
     s.send(b"TYPE_ECHO:hi from vsh\n")
@@ -44,16 +56,22 @@ def vhs():
     user_mode = input(ENDC+OKGREEN+"==> Enter user mode? (y/n) ")
     print(ENDC+"\n")
     if user_mode == "n":
-        vhs_debug(s)
+        vhs_debug(srv_ip,port)
     else: nrml_vhs(srv_ip,port)
     print(ENDC)
 
-def vhs_debug(s: socket):
+def vhs_debug(srv_ip,port):
+    s = socket()
+    s.connect((srv_ip, port))
+    s.settimeout(200000)
     while True:
         cmd = input("==> Command (debug mode!): ")
-        s.send( bytes(cmd, "utf-8")+b"\n" )
-        s.recv(1024)
-        sleep(5)
+        s.send( bytes(cmd+"\n", "utf-8") )
+        l = s.recv(1024)
+        while l:
+            print(len(str(l)))
+            print(str(l))
+            l = s.recv(1024)
 
 def login(s: socket) -> str:
     username = input(OKBLUE+BOLD+"Enter username: ")
@@ -67,6 +85,8 @@ def lgin(s: socket, username,password) -> str:
         if str(s.recv(1024)).find("TYPE_SUCCESS") != -1:
             print(OKGREEN+BOLD+"Successfully logged in"+ENDC)
             vfs.current_dir = "./"
+            globals.isLogged = True
+            globals.username = username
         else:
             print(FAIL+BOLD+"Failed to login."+ENDC)
 
@@ -136,20 +156,42 @@ def nrml_vhs(srv_ip, port):
     s.connect((srv_ip, port))
     s.settimeout(200000)
     while True:
-        print(ENDC)
-        cmd = input("$vfs:"+vfs.current_dir+"> ")
+        print(ENDC, end="")
+        if globals.isLogged == True:
+            cmd = input(globals.username+"$:"+vfs.current_dir+"> ")
+        else:
+            cmd = input("$> ")
         if cmd.startswith("login"):
-            login(s)
+            if globals.isLogged:
+                print(WARNING+BOLD+"Warning: already logged in... ignoring"+ENDC)
+            else:
+                login(s)
         elif cmd.startswith("ls"):
-            if len(cmd.split(" ")) != 2:
-                indexvdir(s, vfs.current_dir)
-                outputdir(vfs.current_dir)
-            else:
-                indexvdir(s, cmd.split(" ")[1])
-                outputdir(cmd.split(" ")[1])
+            try:
+                if globals.isLogged == False:
+                    print(FAIL+BOLD+"Error: not logged in."+ENDC)
+                else:
+                    if len(cmd.split(" ")) != 2:
+                        indexvdir(s, vfs.current_dir)
+                        outputdir(vfs.current_dir)
+                    else:
+                        indexvdir(s, cmd.split(" ")[1])
+                        outputdir(cmd.split(" ")[1])
+            except:
+                print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
         elif cmd.startswith("cd"):
-            if len(cmd.split(" ")) != 2:
-                print(WARNING+BOLD+"Warning: no path passed... will not change CWD."+ENDC)
-            else:
-                cd(s, cmd.split(" ")[1])
+            oldpath = vfs.current_dir
+            try:
+                if globals.isLogged == False:
+                    print(FAIL+BOLD+"Error: not logged in."+ENDC)
+                else:
+                    if len(cmd.split(" ")) != 2:
+                        print(WARNING+BOLD+"Warning: no path passed... will not change CWD."+ENDC)
+                    else:
+                        cd(s, cmd.split(" ")[1])
+            except:
+                print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+                vfs.current_dir = oldpath
+        elif cmd.startswith("cwd"):
+            print(vfs.current_dir)
                 
