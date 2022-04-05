@@ -162,13 +162,13 @@ def cd(s: socket, path: str):
 
 def send(s:socket,cmd:str):
     localsystempath = input(OKBLUE+BOLD+"Enter the full file path on your local computer: ")
-    originpath = input("Enter the full path on where you want to store this file: ."+globals.username+"/")
+    originpath = input("Enter the full path on where you want to store this file: "+vfs.current_dir+"/")
+    sendpath = posixpath.join(vfs.current_dir, originpath)
     print(ENDC)
-    s.send(bytes("TYPE_SEND:"+originpath+"\n", "utf-8"))
+    s.send(bytes("TYPE_SEND:"+sendpath+"\n", "utf-8"))
     try:
         with open(localsystempath, "r") as file:
-            str_file = file.read()
-            bytes_file = bytes(str_file, file.encoding)
+            bytes_file = file.buffer.read()
 
             split_bytes_file = [bytes_file[x:x+1024] for x in range(0, len(bytes_file), 1024)]
             sleep(1)
