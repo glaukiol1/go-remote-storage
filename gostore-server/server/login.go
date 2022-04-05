@@ -46,20 +46,29 @@ func cmd_ls(conn net.Conn, args []string, username_password []string) {
 		return
 	}
 	fmt.Println(args)
-	files, err := os.ReadDir(path.Join(
+	lpath := path.Join(
+		GOSTORE_PATH,
+		"."+strings.TrimSpace(username_password[0]))
+	fpath := path.Join(
 		GOSTORE_PATH,
 		"."+strings.TrimSpace(username_password[0]),
-		args[0]))
-	if err != nil {
+		args[0])
+	if strings.HasPrefix(fpath, lpath) {
+		files, err := os.ReadDir(fpath)
+		if err != nil {
+			conn.Write([]byte("TYPE_NOT_ACCESS_DIR"))
+			return
+		}
+		if len(files) == 0 {
+			conn.Write([]byte("TYPE_NO_FILES"))
+		}
+		for _, file := range files {
+			conn.Write(getFileJSON(file))
+		}
+	} else {
 		conn.Write([]byte("TYPE_NOT_ACCESS_DIR"))
-		return
 	}
-	if len(files) == 0 {
-		conn.Write([]byte("TYPE_NO_FILES"))
-	}
-	for _, file := range files {
-		conn.Write(getFileJSON(file))
-	}
+
 }
 
 func split(buf []byte, lim int) [][]byte {
@@ -83,21 +92,31 @@ func type_get(conn net.Conn, args []string, username_password []string) {
 		return
 	}
 	fmt.Println(args)
-	file_bytes, err := os.ReadFile(path.Join(
+	lpath := path.Join(
+		GOSTORE_PATH,
+		"."+strings.TrimSpace(username_password[0]))
+	fpath := path.Join(
 		GOSTORE_PATH,
 		"."+strings.TrimSpace(username_password[0]),
-		args[0]))
-	if err != nil {
+		args[0])
+
+	if strings.HasSuffix(fpath, lpath) {
+		file_bytes, err := os.ReadFile(fpath)
+		if err != nil {
+			conn.Write([]byte("TYPE_ERROR:COULDN'T ACCESS FILE"))
+			conn.Close()
+			return
+		}
+		conn.Write([]byte("TYPE_START_RESPONSE\n"))
+		arrs := split(file_bytes, 1024)
+		for _, arr := range arrs {
+			conn.Write(arr)
+		}
+		conn.Write([]byte("TYPE_END_RESPONSE\n"))
+	} else {
 		conn.Write([]byte("TYPE_ERROR:COULDN'T ACCESS FILE"))
-		conn.Close()
-		return
 	}
-	conn.Write([]byte("TYPE_START_RESPONSE\n"))
-	arrs := split(file_bytes, 1024)
-	for _, arr := range arrs {
-		conn.Write(arr)
-	}
-	conn.Write([]byte("TYPE_END_RESPONSE\n"))
+
 }
 
 func login(conn net.Conn, message string, client *mongo.Client) {
