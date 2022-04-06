@@ -1,5 +1,5 @@
 # 📁 go-remote-storage
-Remote File Storage written in Go (server) & Python (client).
+Remote File Storage written in Go (server) & Python (client). It is made for demonstrational purposes on how to create a remote storage client & server with communication over TCP (no FTP!). The files are also being sent through TCP, not FTP.
 
 
   
