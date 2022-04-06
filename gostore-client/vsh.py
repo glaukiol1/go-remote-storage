@@ -77,13 +77,13 @@ def vhs_debug(srv_ip,port):
             print(str(l))
             l = s.recv(1024)
 
-def login(s: socket) -> str:
+def login(s: socket) -> bool:
     username = input(OKBLUE+BOLD+"Enter username: ")
     password = input("Enter Password: ")
     print(ENDC)
     return lgin(s, username, password)
 
-def lgin(s: socket, username,password) -> str:
+def lgin(s: socket, username,password) -> bool:
         cmd = bytes("TYPE_LOGIN:"+username+":"+password+"\n", "utf-8")
         s.send(cmd)
         if str(s.recv(1024)).find("TYPE_SUCCESS") != -1:
@@ -91,13 +91,31 @@ def lgin(s: socket, username,password) -> str:
             vfs.current_dir = "./"
             globals.isLogged = True
             globals.username = username
+            return True
         else:
             print(FAIL+BOLD+"Failed to login."+ENDC)
+            return False
 
 def cmd_download(s: socket, filename: str):
     path = posixpath.join(vfs.current_dir, filename)
     saveto = os.path.join("recv", filename)
     download(s,path,saveto)
+
+def cmd_rm(s: socket):
+    showpath = ""
+    if vfs.current_dir.endswith("/"):
+        showpath = vfs.current_dir
+    else:
+        showpath = vfs.current_dir+"/"
+    originpath = input(OKBLUE+BOLD+"What directory/file do you want to delete? "+showpath)
+    sendpath = posixpath.join(vfs.current_dir, originpath)
+    cmd = bytes("CMD_RM:"+sendpath+"\n", "utf-8")
+    s.send(cmd)
+    rsp = str(s.recv(1024))
+    if rsp.find("TYPE_SUCCESS") != -1:
+        print(OKGREEN+BOLD+"Successfully deleted "+OKCYAN+sendpath+ENDC)
+    else:
+        print(FAIL+BOLD+"Failed to delete directory... response: "+rsp)
 
 def ls(s: socket, searchfor):
     cmd = bytes(searchfor, "utf-8")
@@ -160,7 +178,7 @@ def cd(s: socket, path: str):
     indexvdir(s,path)
     vfs.current_dir = posixpath.join(vfs.current_dir,path)
 
-def send(s:socket,cmd:str):
+def send(s:socket):
     localsystempath = input(OKBLUE+BOLD+"Enter the full file path on your local computer: ")
     originpath = input("Enter the full path on where you want to store this file: "+vfs.current_dir+"/")
     sendpath = posixpath.join(vfs.current_dir, originpath)
@@ -197,7 +215,11 @@ def nrml_vhs(srv_ip, port):
             if globals.isLogged:
                 print(WARNING+BOLD+"Warning: already logged in... ignoring"+ENDC)
             else:
-                login(s)
+                success = login(s)
+                if success == False:
+                    s = socket()
+                    s.connect((srv_ip, port))
+                    s.settimeout(200000)
         elif cmd.startswith("ls"):
             try:
                 if globals.isLogged == False:
@@ -235,4 +257,12 @@ def nrml_vhs(srv_ip, port):
             except:
                 print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
         elif cmd.startswith("send"):
-            send(s,cmd)
+            try:
+                send(s)
+            except:
+                print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+        elif cmd.startswith("rm"):
+            try:
+                cmd_rm(s)
+            except:
+                print(FAIL+BOLD+"failed... cleaning up..."+ENDC)

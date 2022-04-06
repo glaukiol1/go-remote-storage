@@ -21,10 +21,10 @@ def write(data: bytes, file: BufferedWriter):
 def download(s: socket, filepath: str, saveTo: str):
     global total_b_written
     f = open(saveTo,'wb')
-    s.send(b"TYPE_GET:"+ bytes(filepath, 'utf-8') +b"\n")
+    s.send(bytes("TYPE_GET:"+filepath+"\n", 'utf-8'))
     while True:
         l = s.recv(1024)
-        if l.find(b"TYPE_ERROR:COULDN'T ACCESS FILE"):
+        if l.find(b"TYPE_ERROR:COULDN'T ACCESS FILE") != -1:
             print(FAIL+BOLD+"server couldn't access this file.")
             return
         while (l):
