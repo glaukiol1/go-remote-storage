@@ -11,7 +11,7 @@ You can specific documentation below:
 
 |Package|Link|Package written in|
 |----|----|----|
-|Client|[docs](gostore-client/README.md)|Python|
+|Client|(Not created)[docs](gostore-client/README.md)|Python|
 |Server|[docs](gostore-server/README.md)|Go (Go-lang)|
 
 ## :memo: TO-DOS
