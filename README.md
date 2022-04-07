@@ -18,7 +18,7 @@ You can specific documentation below:
 
 TODOs for both client and server.
 
-- Add a `mkdir` command and proccess it in the server
+- Add a `mkdir` command and proccess it in the server | **Done**
 - Show the _all_ the response messages on error (client)
 - When the pipe has been closed or errored, show a _fatal_ error message and quit. (client)
 - Better format the `ls` command (client)
