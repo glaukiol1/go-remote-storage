@@ -88,7 +88,7 @@ def lgin(s: socket, username,password) -> bool:
         s.send(cmd)
         if str(s.recv(1024)).find("TYPE_SUCCESS") != -1:
             print(OKGREEN+BOLD+"Successfully logged in"+ENDC)
-            vfs.current_dir = "./"
+            vfs.current_dir = "/"
             globals.isLogged = True
             globals.username = username
             return True
@@ -116,6 +116,23 @@ def cmd_rm(s: socket):
         print(OKGREEN+BOLD+"Successfully deleted "+OKCYAN+sendpath+ENDC)
     else:
         print(FAIL+BOLD+"Failed to delete directory... response: "+rsp)
+
+def cmd_mkdir(s: socket):
+    showpath = ""
+    if vfs.current_dir.endswith("/"):
+        showpath = vfs.current_dir
+    else:
+        showpath = vfs.current_dir+"/"
+    originpath = input(OKBLUE+BOLD+"Enter the directory path you would like to create: "+showpath)
+    sendpath = posixpath.join(vfs.current_dir, originpath)
+    cmd = bytes("CMD_MKDIR:"+sendpath+"\n", "utf-8")
+    s.send(cmd)
+    rsp = str(s.recv(1024))
+    if rsp.find("TYPE_SUCCESS") != -1:
+        print(OKGREEN+BOLD+"Successfully created "+OKCYAN+sendpath+ENDC)
+        indexvdir(s, vfs.current_dir)
+    else:
+        print(FAIL+BOLD+"Failed to create directory... response: "+rsp)
 
 def ls(s: socket, searchfor):
     cmd = bytes(searchfor, "utf-8")
@@ -175,6 +192,10 @@ def pathIsIndexed(path: str) -> int:
     return -1
 
 def cd(s: socket, path: str):
+    if path == "..":
+        path = posixpath.normpath(vfs.current_dir + os.sep + os.pardir)
+    elif path == ".":
+        return
     indexvdir(s,path)
     vfs.current_dir = posixpath.join(vfs.current_dir,path)
 
@@ -264,5 +285,10 @@ def nrml_vhs(srv_ip, port):
         elif cmd.startswith("rm"):
             try:
                 cmd_rm(s)
+            except:
+                print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+        elif cmd.startswith("mkdir"):
+            try:
+                cmd_mkdir(s)
             except:
                 print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
