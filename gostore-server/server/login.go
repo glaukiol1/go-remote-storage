@@ -39,6 +39,9 @@ func handle_after_login(conn net.Conn, username_password []string) {
 	if strings.HasPrefix(cmd, "CMD_RM") {
 		cmd_rm(conn, strings.Split(cmd, ":")[1:], username_password)
 	}
+	if strings.HasPrefix(cmd, "CMD_MKDIR") {
+		cmd_mkdir(conn, strings.Split(cmd, ":")[1:], username_password)
+	}
 	handle_after_login(conn, username_password)
 }
 
@@ -98,11 +101,7 @@ func cmd_rm(conn net.Conn, args []string, username_password []string) {
 			conn.Write([]byte("TYPE_NOT_ACCESS_PATH"))
 			return
 		}
-		if os.IsExist(err) {
-			conn.Write([]byte("TYPE_SUCCESS"))
-		} else {
-			conn.Write([]byte("TYPE_FAIL"))
-		}
+		conn.Write([]byte("TYPE_SUCCESS"))
 	} else {
 		conn.Write([]byte("TYPE_NOT_ACCESS_PATH"))
 	}
@@ -150,6 +149,35 @@ func type_get(conn net.Conn, args []string, username_password []string) {
 			conn.Write(arr)
 		}
 		conn.Write([]byte("TYPE_END_RESPONSE\n"))
+	} else {
+		conn.Write([]byte("TYPE_ERROR:COULDN'T ACCESS FILE"))
+	}
+}
+
+func cmd_mkdir(conn net.Conn, args []string, username_password []string) {
+	GOSTORE_PATH := os.Getenv("GOSTORE_PATH")
+	if len(args) != 1 {
+		conn.Write([]byte("TYPE_ERROR:PASS DIR ARG"))
+		conn.Close()
+		return
+	}
+	fmt.Println(args)
+	lpath := path.Join(
+		GOSTORE_PATH,
+		"."+strings.TrimSpace(username_password[0]))
+	fpath := path.Join(
+		GOSTORE_PATH,
+		"."+strings.TrimSpace(username_password[0]),
+		args[0])
+
+	if strings.HasPrefix(fpath, lpath) {
+		err := os.MkdirAll(fpath, os.ModePerm)
+		if err != nil {
+			conn.Write([]byte("TYPE_ERROR:COULDN'T ACCESS FILE"))
+			conn.Close()
+			return
+		}
+		conn.Write([]byte("TYPE_SUCCESS\n"))
 	} else {
 		conn.Write([]byte("TYPE_ERROR:COULDN'T ACCESS FILE"))
 	}
