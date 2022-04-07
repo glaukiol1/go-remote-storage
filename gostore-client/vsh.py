@@ -86,14 +86,15 @@ def login(s: socket) -> bool:
 def lgin(s: socket, username,password) -> bool:
         cmd = bytes("TYPE_LOGIN:"+username+":"+password+"\n", "utf-8")
         s.send(cmd)
-        if str(s.recv(1024)).find("TYPE_SUCCESS") != -1:
+        rsp = str(s.recv(1024))
+        if rsp.find("TYPE_SUCCESS") != -1:
             print(OKGREEN+BOLD+"Successfully logged in"+ENDC)
             vfs.current_dir = "/"
             globals.isLogged = True
             globals.username = username
             return True
         else:
-            print(FAIL+BOLD+"Failed to login."+ENDC)
+            print(FAIL+BOLD+"Failed to login... response: "+rsp+ENDC)
             return False
 
 def cmd_download(s: socket, filename: str):
@@ -199,6 +200,25 @@ def cd(s: socket, path: str):
     indexvdir(s,path)
     vfs.current_dir = posixpath.join(vfs.current_dir,path)
 
+
+def signup(s: socket):
+    username = input(OKBLUE+"New username: ")
+    password = input(OKBLUE+"Your password: ")
+    print(ENDC)
+    cmd = bytes("TYPE_SIGNUP:"+username+":"+password+"\n", "utf-8")
+    s.send(cmd)
+    rsp = str(s.recv(1024))
+    if rsp.find("TYPE_SUCCESS") != -1:
+        print(BOLD+OKGREEN+"Successfully signed up. Use the "+OKBLUE+"login"+OKGREEN+" command to access your account.")
+    else:
+        if rsp.find("TYPE_ERROR:Username is already registered.") != -1:
+            print(WARNING+BOLD+"failed: username is already registered on this server"+ENDC)
+            raise 'username error'
+        else:
+            print(FAIL+BOLD+"failed... response: "+rsp)
+            raise 'unknown error'
+
+
 def send(s:socket):
     localsystempath = input(OKBLUE+BOLD+"Enter the full file path on your local computer: ")
     originpath = input("Enter the full path on where you want to store this file: "+vfs.current_dir+"/")
@@ -292,3 +312,11 @@ def nrml_vhs(srv_ip, port):
                 cmd_mkdir(s)
             except:
                 print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+        elif cmd.startswith("signup"):
+            try:
+                signup(s)
+            except:
+                print(FAIL+BOLD+"failed... resetting socket connection..."+ENDC)
+            s = socket()
+            s.connect((srv_ip, port))
+            s.settimeout(200000)
