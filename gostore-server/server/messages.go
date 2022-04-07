@@ -20,6 +20,8 @@ func (mh *messageHandler) Handle(db *mongo.Client) {
 		login(mh.Connection, mh.Value, db)
 	case "TYPE_ECHO":
 		type_echo(mh.Connection)
+	case "TYPE_SIGNUP":
+		signup(mh.Connection, mh.Value, db)
 	default:
 		not_found(mh.Connection)
 	}

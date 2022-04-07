@@ -267,11 +267,11 @@ func login(conn net.Conn, message string, client *mongo.Client) {
 	}
 	err = user.Decode(&user_field)
 	if err != nil {
-		conn.Write([]byte("TYPE_ERROR:DB_ERROR"))
+		conn.Write([]byte("TYPE_ERROR:DB_ERROR:" + err.Error() + "\n"))
 		conn.Close()
 		return
 	}
-	if user_field["username"] == strings.TrimSpace(username_password[1]) {
+	if user_field["username"] == strings.TrimSpace(username_password[0]) {
 		conn.Write([]byte("TYPE_SUCCESS:LOGGED_IN\n"))
 		if err != nil {
 			not_found(conn)
