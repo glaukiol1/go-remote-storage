@@ -288,30 +288,45 @@ def nrml_vhs(srv_ip, port):
                 print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
                 vfs.current_dir = oldpath
         elif cmd.startswith("cwd"):
-            print(vfs.current_dir)
+            if globals.isLogged:
+                print(vfs.current_dir)
+            else:
+                print(FAIL+BOLD+"Error: not logged in."+ENDC)
         elif cmd.startswith("get"):
-            try:
-                if len(cmd.split(" ")) == 2:
-                    cmd_download(s,cmd.split(" ")[1])
-                else:
-                    print(WARNING+BOLD+"please pass a filename as a argument..."+ENDC)
-            except:
-                print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+            if globals.isLogged:
+                try:
+                    if len(cmd.split(" ")) == 2:
+                        cmd_download(s,cmd.split(" ")[1])
+                    else:
+                        print(WARNING+BOLD+"please pass a filename as a argument..."+ENDC)
+                except:
+                    print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+            else:
+                print(FAIL+BOLD+"Error: not logged in."+ENDC)
         elif cmd.startswith("send"):
-            try:
-                send(s)
-            except:
-                print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+            if globals.isLogged:
+                try:
+                    send(s)
+                except:
+                    print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+            else:
+                print(FAIL+BOLD+"Error: not logged in."+ENDC)
         elif cmd.startswith("rm"):
-            try:
-                cmd_rm(s)
-            except:
-                print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+            if globals.isLogged:
+                try:
+                    cmd_rm(s)
+                except:
+                    print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+            else:
+                print(FAIL+BOLD+"Error: not logged in."+ENDC)
         elif cmd.startswith("mkdir"):
-            try:
-                cmd_mkdir(s)
-            except:
-                print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+            if globals.isLogged:
+                try:
+                    cmd_mkdir(s)
+                except:
+                    print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+            else:
+                print(FAIL+BOLD+"Error: not logged in."+ENDC)
         elif cmd.startswith("signup"):
             try:
                 signup(s)
