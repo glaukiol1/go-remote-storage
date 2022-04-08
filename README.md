@@ -21,8 +21,9 @@ TODOs for both client and server.
 - Add a `mkdir` command and proccess it in the server | **Done**
 - Show the _all_ the response messages on error (client) | **Done**
 - When the pipe has been closed or errored, show a _fatal_ error message and quit. (client)
-- Better format the `ls` command (client) 
+- Better format the `ls` command (client) | **Done**
 - Add signup (server & client) | **Done**
 - Create a .username folder on signup (server) | **Done**
+- Encrypt the files (Server-side encryption)
 
 #
