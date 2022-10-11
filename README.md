@@ -11,7 +11,7 @@ You can specific documentation below:
 
 |Package|Link|Package written in|
 |----|----|----|
-|Client|[docs](gostore-client/README.md)|Python|
+|Client|(Not created)[docs](gostore-client/README.md)|Python|
 |Server|[docs](gostore-server/README.md)|Go (Go-lang)|
 
 ## :memo: TO-DOS
@@ -19,10 +19,11 @@ You can specific documentation below:
 TODOs for both client and server.
 
 - Add a `mkdir` command and proccess it in the server | **Done**
-- Show the _all_ the response messages on error (client)
+- Show the _all_ the response messages on error (client) | **Done**
 - When the pipe has been closed or errored, show a _fatal_ error message and quit. (client)
-- Better format the `ls` command (client)
-- Add signup (server & client)
-- Create a .username folder on signup (server)
+- Better format the `ls` command (client) | **Done**
+- Add signup (server & client) | **Done**
+- Create a .username folder on signup (server) | **Done**
+- Encrypt the files (Server-side encryption)
 
 #
