@@ -34,7 +34,6 @@ func type_echo(conn net.Conn) {
 func not_found(conn net.Conn) {
 	conn.Write([]byte("TYPE_ERROR:invalid request"))
 	conn.Close()
-	return
 }
 
 func newMessageHandler(key, value string, conn net.Conn) *messageHandler {

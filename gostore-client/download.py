@@ -20,6 +20,7 @@ def write(data: bytes, file: BufferedWriter):
 
 def download(s: socket, filepath: str, saveTo: str):
     global total_b_written
+    total_b_written = 0
     f = open(saveTo,'wb')
     s.send(bytes("TYPE_GET:"+filepath+"\n", 'utf-8'))
     while True:
@@ -33,9 +34,6 @@ def download(s: socket, filepath: str, saveTo: str):
                 f.close()
                 print("Read "+str(total_b_written/1048576)+"mb")
                 return
-            if l.find(b"TYPE_START_RESPONSE") != -1:
-                v = l.split(bytes("\n", "utf-8"), 1)[1]
-                write(v,f)
             else: 
                 write(l,f)
             l = s.recv(1024)

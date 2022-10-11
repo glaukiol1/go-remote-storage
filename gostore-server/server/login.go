@@ -143,7 +143,6 @@ func type_get(conn net.Conn, args []string, username_password []string) {
 			conn.Close()
 			return
 		}
-		conn.Write([]byte("TYPE_START_RESPONSE\n"))
 		arrs := split(file_bytes, 1024)
 		for _, arr := range arrs {
 			conn.Write(arr)

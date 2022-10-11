@@ -18,10 +18,7 @@ func isValidPath(path string) bool {
 		return r < 'A' || r > 'z'
 	}
 
-	if strings.IndexFunc(path, f) == -1 {
-		return true
-	}
-	return false
+	return strings.IndexFunc(path, f) == -1
 }
 
 func signup(conn net.Conn, message string, client *mongo.Client) {
