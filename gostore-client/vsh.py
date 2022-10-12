@@ -8,6 +8,7 @@ import sys
 from time import sleep
 
 from download import download
+from encryption import string_encryption_password_based
 
 
 HEADER = '\033[95m'
@@ -81,10 +82,10 @@ def login(s: socket) -> bool:
     username = input(OKBLUE+BOLD+"Enter username: ")
     password = input("Enter Password: ")
     print(ENDC)
-    return lgin(s, username, password)
+    return lgin(s, username, string_encryption_password_based("password", password))
 
 def lgin(s: socket, username,password) -> bool:
-        cmd = bytes("TYPE_LOGIN:"+username+":"+password+"\n", "utf-8")
+        cmd = bytes("TYPE_LOGIN:"+username+":"+str(password, "utf-8")+"\n", "utf-8")
         s.send(cmd)
         rsp = str(s.recv(1024))
         if rsp.find("TYPE_SUCCESS") != -1:
@@ -205,7 +206,7 @@ def signup(s: socket):
     username = input(OKBLUE+"New username: ")
     password = input(OKBLUE+"Your password: ")
     print(ENDC)
-    cmd = bytes("TYPE_SIGNUP:"+username+":"+password+"\n", "utf-8")
+    cmd = bytes("TYPE_SIGNUP:"+username+":"+str(string_encryption_password_based("password", password), "utf-8")+"\n", "utf-8")
     s.send(cmd)
     rsp = str(s.recv(1024))
     if rsp.find("TYPE_SUCCESS") != -1:

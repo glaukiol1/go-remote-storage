@@ -270,7 +270,7 @@ func login(conn net.Conn, message string, client *mongo.Client) {
 		conn.Close()
 		return
 	}
-	if user_field["username"] == strings.TrimSpace(username_password[0]) {
+	if user_field["username"] == strings.TrimSpace(username_password[0]) && user_field["password"] == strings.TrimSpace(username_password[1]) {
 		conn.Write([]byte("TYPE_SUCCESS:LOGGED_IN\n"))
 		if err != nil {
 			not_found(conn)
@@ -278,7 +278,7 @@ func login(conn net.Conn, message string, client *mongo.Client) {
 		}
 		handle_after_login(conn, username_password)
 	} else {
-		conn.Write([]byte("TYPE_ERROR:DB_ERROR"))
+		conn.Write([]byte("TYPE_ERROR:INVALID_CREDENTIALS"))
 		conn.Close()
 		return
 	}
