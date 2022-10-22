@@ -34,7 +34,7 @@ def download(s: socket, filepath: str, saveTo: str, password: str):
         while (l):
             if l.find(b"TYPE_END_RESPONSE") != -1:
                 write(l[0:l.find(b"TYPE_END_RESPONSE")])
-                total_b_written = f.write(decrypt_bytes(globals2.data, password))/1048576
+                total_b_written = f.write(decrypt_bytes(globals2.data, password))/1e+6
                 f.close()
                 globals2.data = b""
                 print("Read "+str(total_b_written)+" mb.")
