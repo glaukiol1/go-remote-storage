@@ -7,8 +7,9 @@ from socket import socket
 import sys
 from time import sleep
 
+
 from download import download
-from encryption import string_encryption_password_based
+from encryption import string_encryption_password_based, encrypt_bytes_with_password
 
 
 HEADER = '\033[95m'
@@ -29,6 +30,7 @@ class vfs:
 class globals:
     isLogged = False
     username = ""
+    password = ""
 
 def vhs():
     print(CLEAR)
@@ -81,6 +83,7 @@ def vhs_debug(srv_ip,port):
 def login(s: socket) -> bool:
     username = input(OKBLUE+BOLD+"Enter username: ")
     password = input("Enter Password: ")
+    globals.password = password
     print(ENDC)
     return lgin(s, username, string_encryption_password_based("password", password))
 
@@ -101,7 +104,7 @@ def lgin(s: socket, username,password) -> bool:
 def cmd_download(s: socket, filename: str):
     path = posixpath.join(vfs.current_dir, filename)
     saveto = os.path.join("recv", filename)
-    download(s,path,saveto)
+    download(s,path,saveto, globals.password)
 
 def cmd_rm(s: socket):
     showpath = ""
@@ -229,7 +232,7 @@ def send(s:socket):
     try:
         with open(localsystempath, "r") as file:
             bytes_file = file.buffer.read()
-
+            bytes_file = encrypt_bytes_with_password(bytes_file,globals.password)
             split_bytes_file = [bytes_file[x:x+1024] for x in range(0, len(bytes_file), 1024)]
             sleep(1)
             for m1024bytes in split_bytes_file:
@@ -300,8 +303,14 @@ def nrml_vhs(srv_ip, port):
                         cmd_download(s,cmd.split(" ")[1])
                     else:
                         print(WARNING+BOLD+"please pass a filename as a argument..."+ENDC)
-                except:
-                    print(FAIL+BOLD+"failed... cleaning up..."+ENDC)
+                except FileNotFoundError:
+                    print(WARNING+BOLD+"please login again..."+ENDC)
+                    s = socket()
+                    s.connect((srv_ip, port))
+                    s.settimeout(200000)
+                    globals.isLogged = False
+                    globals.username = ""
+                    globals.password = ""
             else:
                 print(FAIL+BOLD+"Error: not logged in."+ENDC)
         elif cmd.startswith("send"):
