@@ -1,6 +1,7 @@
 from io import BufferedWriter
 import os
 from socket import socket
+from time import time
 
 from encryption import decrypt_bytes
 
@@ -24,6 +25,7 @@ def download(s: socket, filepath: str, saveTo: str, password: str):
     total_b_written = 0
     f = open(saveTo,'wb')
     s.send(bytes("TYPE_GET:"+filepath+"\n", 'utf-8'))
+    start = time()
     while True:
         l = s.recv(1024)
         if l.find(b"TYPE_ERROR:COULDN'T ACCESS FILE") != -1:
@@ -37,7 +39,7 @@ def download(s: socket, filepath: str, saveTo: str, password: str):
                 total_b_written = f.write(decrypt_bytes(globals2.data, password))/1e+6
                 f.close()
                 globals2.data = b""
-                print("Read "+str(total_b_written)+" mb.")
+                print(ENDC+OKGREEN+"Success: "+ENDC+"Read "+HEADER+str(total_b_written)+ENDC+" mb at "+HEADER+str(total_b_written/(time()-start))+ENDC+" mb/s")
                 return
             else: 
                 write(l)
