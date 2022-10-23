@@ -24,6 +24,9 @@ TODOs for both client and server.
 - Better format the `ls` command (client) | **Done**
 - Add signup (server & client) | **Done**
 - Create a .username folder on signup (server) | **Done**
-- Encrypt the files (Server-side encryption)
+- Encrypt the files | **Done**
+- Display errors in the client VHS, not display plain response on error.
+- Do not reset connection when the client enters the _get_ filename incorrectly.
+- Display how many mb's were sent to the server when using _send_ and at what speed (mb/s).
 
 #
